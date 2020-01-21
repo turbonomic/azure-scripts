@@ -168,3 +168,4 @@ foreach($storloc in $vmsloc){
 $date = date
 Write-Host "**Script completed at $date" -ForegroundColor Green
 Write-Host "**Check path: ""$fullPath"" for the logs" -ForegroundColor Green
+#END OF SCRIPT
