@@ -6,9 +6,10 @@ Updated By: Jason Shaw
 Email: Jason.Shaw@turbonomic.com
 
 #The script will create a new Azure storage account in and a new resrouce group unless the ones provided already exists, then it will use it.
+
 #The Azure location specified will only be used if a new resource group and storage account is needed to be created and must be in the short name ex. eastus or westus
 
-#It will also add all of the Turbonomic Service Principal to the the new storage account
+#It will also add the Turbonomic Service Principal to the the new storage account with the "Reader and Data Access" role
 #Both above are required for Turbonomic to read the memory metrics from the new storage account(s)
 
 #Make sure to specify a unique storage account name, otherwise the script will exit/stop
@@ -81,11 +82,7 @@ if (($valres = Get-AzureRmResourceGroup -Name $resourcegroup -ErrorAction Silent
 $vmsloc = $location
 Add-Content -Path .\$subname\ResandStorage.csv -Value "Subscription Name,Subscription ID,Resource Group,Storage Account,Storage Location,Storage Path"
 Add-Content -Path .\$subname\TurboRoleAddedToStorage.csv -Value "Subscription Name,Subscription ID,Turbonomic Role Name, SPN Name"
-#Add foreach loop for creating storage account per $vmsloc variable
-#$count = 0
 $error.clear()
- #   $count++
- #   $storageaccountname = $storageaccount + $count
     $storageaccountname = $storageaccount
     #Create new Storage Account for metrics
     $getStorage = get-azurermresourcegroup | get-azurermstorageaccount -name $storageaccountname -ErrorAction SilentlyContinue
