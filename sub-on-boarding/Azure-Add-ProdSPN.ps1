@@ -17,23 +17,18 @@ Make sure to create a file named subs-prod.txt and that it is in the directory y
 #PRODEU - which will apply the role and scope for PROD EU
 
 #Make sure the sub in the parameter below is one that has already been onboarded
-#example: .\AzureCreateStorageAccount.ps1 -subid SUB-ID-HERE -environment PROD1
-#example: .\AzureCreateStorageAccount.ps1 -subid 82cdab36-1a2a-123a-1234-f9e83f17944b -environment PROD1
+#example: .\AzureCreateStorageAccount.ps1 -environment PROD1
+#example: .\AzureCreateStorageAccount.ps1 -environment PROD1
 #>
 
 param(
- [Parameter(Mandatory=$True)]
- [string] $subId,
-
  [Parameter(Mandatory=$True)]
  [string] $environment
 )
 $error.clear()
 $TimeStamp = Get-Date -Format o | foreach {$_ -replace ":", "."}
 $readsubsfile = get-content -path .\subs-prod.txt
-if($subId){
-    $logsub = Login-AzureRmAccount -SubscriptionId $subId -ErrorAction Stop
-    }
+$logsub = Login-AzureRmAccount -ErrorAction Stop
 foreach ($azuresub in $readsubsfile){
     $selectSub = Select-AzureRmSubscription -SubscriptionName $azuresub -InformationAction SilentlyContinue
     $subscriptionId = $selectSub.subscription.Id
