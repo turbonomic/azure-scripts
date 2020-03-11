@@ -1,7 +1,7 @@
 <#
 .VERSION
 2.7 - read sub list from subs.txt file
-Updated Date: Jan. 6, 2019 - 2:15PM
+Updated Date: Jan. 6, 2020
 Updated By: Jason Shaw 
 Email: Jason.Shaw@turbonomic.com
 
