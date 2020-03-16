@@ -55,9 +55,9 @@ foreach ($azuresub in $readsubsfile){
     }
     #Verify if storage account already exists, if not exit the script
     Write-Host "Verifying if storage account exists..." -ForegroundColor Green
-    $storageAll = get-azurermresourcegroup | where {$_.ResourceGroupName -like '*turbo*'} | select -First 1
-    $storagersgName = $storageAll.ResourceGroupName
-    $storageTurboName = Get-AzureRmStorageAccount -ResourceGroupName $storagersgName | where {$_.StorageAccountName -like '*turbo*'} | select -First 1
+    #$storageAll = get-azurermresourcegroup | where {$_.ResourceGroupName -like '*turbo*'} | select -First 1
+    $storageTurboName = Get-AzureRmStorageAccount | where {$_.StorageAccountName -eq $storageaccount}
+    $storagersgName = $storageTurboName.ResourceGroupName
     $storageName = $storageTurboName.StorageAccountName
     if($storageName -eq $null){
       write-host "Storage account specified does not exist, please re-run script with a pre-existing storage account" -ForegroundColor Red -BackgroundColor Black
