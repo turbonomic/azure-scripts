@@ -1,6 +1,6 @@
 <#
 .VERSION
-2.7 - read sub list from subs.txt file
+2.8 - read sub list from subs.txt file
 Updated Date: Mar. 16, 2020
 Updated By: Jason Shaw 
 Email: Jason.Shaw@turbonomic.com
