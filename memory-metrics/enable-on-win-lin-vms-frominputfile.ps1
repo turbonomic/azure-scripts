@@ -1,7 +1,7 @@
 <#
 .VERSION
 2.7 - read sub list from subs.txt file
-Updated Date: Jan. 6, 2020
+Updated Date: Mar. 16, 2020
 Updated By: Jason Shaw 
 Email: Jason.Shaw@turbonomic.com
 
@@ -17,16 +17,17 @@ If you run the script and do not specify a pre-existing storage account the scri
 
 Create a new folder for the script to run in as it will save logs, xml and json files to the folder the script is run in
 
-Make sure you have created the input file named subs.txt in the directory where you are running the script from.  This file should have a list of SUB names on each line
+Make sure you have created the input file named subs.txt in the directory where you are running the script from.  
+This file should have a list of SUB names on each line
 
-To enable for ALL running VMs in a Subscription just specify your subscription id and storage account where the metrics will be stored in that subscription
- .\AzureEnableMetricsPerSub.ps1 -subscriptionId SUB-ID-HERE
+To enable for ALL running VMs in a Subscription just specify your pre-existing storage account where the metrics will be stored in that subscription
+ .\AzureEnableMetricsPerSub.ps1 -storageaccount storage-account-name
 #>
 param(
 
  [Parameter(Mandatory=$True)]
  [string]
- $subscriptionId
+ $storageaccount
 )
 
 $TimeStampLog = Get-Date -Format o | foreach {$_ -replace ":", "."}
@@ -39,9 +40,7 @@ function Get-TimeStamp {
 
 $deployExtensionLogDir = split-path -parent $MyInvocation.MyCommand.Definition
 $readsubsfile = get-content -path .\subs.txt
-if($subscriptionId){
-    $logsub = Login-AzureRmAccount -SubscriptionId $subscriptionId -ErrorAction Stop
-    }
+$logsub = Login-AzureRmAccount -ErrorAction Stop
 foreach ($azuresub in $readsubsfile){
     $selectSub = Select-AzureRmSubscription -SubscriptionName $azuresub -InformationAction SilentlyContinue
     $subname = $azuresub
