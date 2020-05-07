@@ -1,6 +1,6 @@
 <#
 .VERSION
-3.0 - read sub list from subs.txt file
+3.0 - single sub 
 Updated Date: May 7, 2020
 Updated By: Jason Shaw 
 Email: Jason.Shaw@turbonomic.com
@@ -18,17 +18,17 @@ If you run the script and do not specify a pre-existing storage account the scri
 
 Create a new folder for the script to run in as it will save logs, xml and json files to the folder the script is run in
 
-Make sure you have created the input file named subs.txt in the directory where you are running the script from.  
-This file should have a list of SUB names on each line
-
 To enable for ALL running VMs in a Subscription just specify your pre-existing storage account where the metrics will be stored in that subscription
- .\AzureEnableMetricsPerSub.ps1 -storageaccount storage-account-name
+ .\AzureEnableMetricsPerSub.ps1 -storageaccount storage-account-name -sname SUB-NAME-HERE
 #>
 param(
 
  [Parameter(Mandatory=$True)]
  [string]
- $storageaccount
+ $storageaccount,
+ 
+ [Parameter(Mandatory=$True)]
+ [string] $sname
 )
 
 write-host "checking if AzureRM cmdlet is installed, if not it will install/update it as needed" -ForegroundColor Green
@@ -56,9 +56,8 @@ function Get-TimeStamp {
 }
 
 $deployExtensionLogDir = split-path -parent $MyInvocation.MyCommand.Definition
-$readsubsfile = get-content -path .\subs.txt
 $logsub = Login-AzureRmAccount -ErrorAction Stop
-foreach ($azuresub in $readsubsfile){
+foreach ($azuresub in $sname){
     $selectSub = Select-AzureRmSubscription -SubscriptionName $azuresub -InformationAction SilentlyContinue | set-azurermcontext
     $subname = $azuresub
     if((Test-Path -Path .\$subname) -ne 'True'){
