@@ -1,7 +1,7 @@
 <#
 .VERSION
-2.8 - read sub list from subs.txt file
-Updated Date: Mar. 16, 2020
+3.0 - read sub list from subs.txt file
+Updated Date: May 7, 2020
 Updated By: Jason Shaw 
 Email: Jason.Shaw@turbonomic.com
 
@@ -9,6 +9,7 @@ Email: Jason.Shaw@turbonomic.com
 This script will the enable the defauilt Azure Basic Metrics on all running Windows and Linux VMs in a single subscription that currently don't have metrics enabled.
 If the VM already has the metrics enabled it will skip it and output that to the log for tracking.
 If the VM is NOT running it will skip it and output that to the log for tracking.
+The script assumes you have at least Contributor access to the sub when running the script, if not you will receive errors
 
 .DESCRIPTION
 Use the script to Enable the Default Basic Metrics on all running Windows and Linux VMs in an Azure subscription
@@ -30,6 +31,22 @@ param(
  $storageaccount
 )
 
+write-host "checking if AzureRM cmdlet is installed, if not it will install/update it as needed" -ForegroundColor Green
+$azurecmdlets = Get-InstalledModule -Name AzureRM
+if ($azurecmdlets -eq $null){
+    Write-Host "AzureRM module not found, installing.....this can take a few mins to complete...." -ForegroundColor Green
+    Install-Module -name azurerm -scope CurrentUser
+    Write-Host "AzureRM module installed, continuing..." -ForegroundColor Green
+} else {
+    $azuremodver = get-installedmodule -Name AzureRM -MinimumVersion 6.13.1 -ErrorAction SilentlyContinue
+    if ($azuremodver -eq $null){
+        Write-Host "AzureRM module out of date, updating.....this can take a few mins to complete...." -ForegroundColor Green
+        Update-Module -Name AzureRM -Force
+        Write-Host "AzureRM module updated, continuing..." -ForegroundColor Green
+    }
+}
+write-host "AzureRM cmdlet is current.....proceeding...." -ForegroundColor Green
+
 $TimeStampLog = Get-Date -Format o | foreach {$_ -replace ":", "."}
 $error.clear()
 function Get-TimeStamp {
@@ -42,7 +59,7 @@ $deployExtensionLogDir = split-path -parent $MyInvocation.MyCommand.Definition
 $readsubsfile = get-content -path .\subs.txt
 $logsub = Login-AzureRmAccount -ErrorAction Stop
 foreach ($azuresub in $readsubsfile){
-    $selectSub = Select-AzureRmSubscription -SubscriptionName $azuresub -InformationAction SilentlyContinue
+    $selectSub = Select-AzureRmSubscription -SubscriptionName $azuresub -InformationAction SilentlyContinue | set-azurermcontext
     $subname = $azuresub
     if((Test-Path -Path .\$subname) -ne 'True'){
       Write-Host "Creating new sub directory for log files" -ForegroundColor Green
@@ -107,13 +124,13 @@ $vmList = $null
     Write-Host "Getting all VM's in the subscription" -ForegroundColor Green
     $vmList = Get-AzureRmVM -Status
     Write-Host "Getting list of running Linux VMs that do not have metrics enabled yet..." -ForegroundColor Green
-    #$LinuxVmsRunning = $vmList | where{$_.PowerState -eq 'VM running'} | where{$_.StorageProfile.OsDisk.OsType -eq 'Linux'} | where{$_.Extensions.Id -notlike '*LinuxDiagnostic*'}
-    $LinuxVmsRunning=@()    
-    $vmList | where{$.PowerState -eq 'VM running' -and $.StorageProfile.OsDisk.OsType -eq 'Linux'} | %{if (!($.Extensions | ?{$.Id -like 'LinuxDiagnostic'})){$LinuxVmsRunning+= $_ }}
+    $LinuxVmsRunning = $vmList | where{$_.PowerState -eq 'VM running'} | where{$_.StorageProfile.OsDisk.OsType -eq 'Linux'} | where{$_.Extensions.Id -notlike '*LinuxDiagnostic*'}
+    #$LinuxVmsRunning=@()    
+    #$vmList | where{$_.PowerState -eq 'VM running' -and $_.StorageProfile.OsDisk.OsType -eq 'Linux'} | %{if (!($.Extensions | ?{$.Id -like 'LinuxDiagnostic'})){$LinuxVmsRunning+= $_ }}
     Write-Host "Getting list of running Windows VMs that do not have metrics enabled yet..." -ForegroundColor Green
-    #$WinVmsRunning = $vmList | where{$_.PowerState -eq 'VM running'} | where{$_.StorageProfile.OsDisk.OsType -eq 'Windows'} | where{$_.Extensions.Id -notlike '*Microsoft.Insights.VMDiagnosticsSettings*'}
-    $WinVmsRunning=@()
-    $vmList | where{$.PowerState -eq 'VM running' -and $.StorageProfile.OsDisk.OsType -eq 'Windows'} | %{if (!($.Extensions | ?{$.Id -like 'VMDiagnosticsSettings'})){$WinVmsRunning+= $_ }}
+    $WinVmsRunning = $vmList | where{$_.PowerState -eq 'VM running'} | where{$_.StorageProfile.OsDisk.OsType -eq 'Windows'} | where{$_.Extensions.Id -notlike '*Microsoft.Insights.VMDiagnosticsSettings*'}
+    #$WinVmsRunning=@()
+    #$vmList | where{$.PowerState -eq 'VM running' -and $.StorageProfile.OsDisk.OsType -eq 'Windows'} | %{if (!($.Extensions | ?{$.Id -like 'VMDiagnosticsSettings'})){$WinVmsRunning+= $_ }}
     $countwin = ($WinVmsRunning).count
     $countlin = ($LinuxVmsRunning).count
     Write-Host "There are $countwin Windows VM's to be updated" -ForegroundColor Green
@@ -259,6 +276,7 @@ $extensionTemplatePath = Join-Path $deployExtensionLogDir "extensionTemplateForW
 Out-File -FilePath $extensionTemplatePath -Force -Encoding utf8 -InputObject $extensionTemplate
 
     [scriptblock]$sb = { param($rsgName, $vmName, $storageName, $storageKey, $extensionName, $vmLocation, $extensionTemplatePath)
+    set-azurermcontext -subscriptionname $subname
     Set-AzureRmVMDiagnosticsExtension -ResourceGroupName $rsgName -VMName $vmName -StorageAccountName $storageName -StorageAccountKey $storageKey `
     -Name $extensionName -Location $vmLocation -DiagnosticsConfigurationPath $extensionTemplatePath -AutoUpgradeMinorVersion $True
 }
@@ -487,6 +505,7 @@ Start-Job -Name $vmName -ScriptBlock $sb -ArgumentList $rsgName, $vmName, $stora
       #set this up to run via start-job
       #make sure to remove the -AsJob at the end of the script before adding to start-job
       [scriptblock]$sbl = { param($LinExtensionType, $LinExtensionPublisher, $rsgName, $vmName, $LinExtensionName, $vmLocation, $LinExtensionVersion, $jsonfilelinux, $privateCfg)
+        set-azurermcontext -subscriptionname $subname
         Set-AzureRmVMExtension -ExtensionType $LinExtensionType -Publisher $LinExtensionPublisher -ResourceGroupName $rsgName -VMName $vmName -Name $LinExtensionName -Location $vmLocation -TypeHandlerVersion $LinExtensionVersion -Settingstring $jsonfilelinux -ProtectedSettingString $privateCfg
         }
 
