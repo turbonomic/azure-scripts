@@ -1,7 +1,7 @@
 <#
 .VERSION
-1.0
-Updated Date: Feb. 7, 2020
+1.1
+Updated Date: July 22, 2020
 Updated By: Jason Shaw 
 Email: Jason.Shaw@turbonomic.com
 
@@ -92,7 +92,7 @@ $error.clear()
         #Creating new storage account
         $selectSub = Select-AzureRmSubscription -Subscription $subscriptionId
         $error.clear()
-        $newStorage = New-AzurermStorageAccount -ResourceGroupName $resourcegroup -Name $storageaccountname -Location $storloc -Kind StorageV2 -SkuName Standard_LRS -EnableHttpsTrafficOnly $true -ErrorAction Stop
+        $newStorage = New-AzurermStorageAccount -ResourceGroupName $resourcegroup -Name $storageaccountname -Location $location -Kind StorageV2 -SkuName Standard_LRS -EnableHttpsTrafficOnly $true -ErrorAction Stop
         if(($error) -like '*is already taken*'){
             Write-Host "Storage account name ""$storageaccountname"" is already in use in Azure and is NOT unique" -ForegroundColor Red -BackgroundColor Black
             Write-Host "please re-run the script and specify a unique storage account name" -ForegroundColor Red -BackgroundColor Black
@@ -101,12 +101,12 @@ $error.clear()
         }
         $newStorageId = $newStorage.Id
         Write-Host "Storage account name is unique, storage account created named: ""$storageaccountname"" " -ForegroundColor Green
-        Add-Content -Path .\$subname\ResandStorage.csv -Value "$subname,$subscriptionId,$resourcegroup,$storageaccountname,$storloc,$newStorageId"
+        Add-Content -Path .\$subname\ResandStorage.csv -Value "$subname,$subscriptionId,$resourcegroup,$storageaccountname,$location,$newStorageId"
         Add-Content -Path .\$subname\ResandStorage.csv -Value "$error"
     } else {
         Write-Host "Storage account named: ""$storageaccountname"" already exists, using existing instead of creating a new one" -ForegroundColor Green
         $getStorageId = $getStorage.Id
-        Add-Content -Path .\$subname\ResandStorage.csv -Value "$subname,$subscriptionId,$resourcegroup,$storageaccountname,$storloc,$getStorageId"
+        Add-Content -Path .\$subname\ResandStorage.csv -Value "$subname,$subscriptionId,$resourcegroup,$storageaccountname,$location,$getStorageId"
         Add-Content -Path .\$subname\ResandStorage.csv -Value "$error"
     }
     $error.clear()
