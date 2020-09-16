@@ -121,7 +121,7 @@ foreach ($azuresub in $sname){
 
 $vmList = $null
     Write-Host "Getting all VM's in the subscription" -ForegroundColor Green
-    $vmList = Get-AzureRmVM -Status
+    $vmList = $vmstat
     Write-Host "Getting list of running Linux VMs that do not have metrics enabled yet..." -ForegroundColor Green
     $LinuxVmsRunning = $vmList | where{$_.PowerState -eq 'VM running'} | where{$_.StorageProfile.OsDisk.OsType -eq 'Linux'} | where{$_.Extensions.Id -notlike '*LinuxDiagnostic*'}
     #$LinuxVmsRunning=@()    
