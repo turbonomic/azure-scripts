@@ -104,7 +104,7 @@ foreach ($azuresub in $sname){
     $extensionVersion = "1.5"
     $startdate = [system.datetime]::now.AddDays(-1)
     $enddate = [system.datetime]::Now.AddYears(10)
-    $storageKeys = Get-AzureRmStorageAccountKey -ResourceGroupName $StoragersgName -Name $storageName
+    $storageKeys = Get-AzureRmStorageAccountKey -ResourceGroupName $StoragersgName -Name $storageName -ErrorAction stop
     $storageKey = $storageKeys[0].Value
     $context = new-azurestoragecontext -StorageAccountName $storageName -StorageAccountKey $storageKey
     $storageSas = new-azurestorageaccountsastoken -Service Blob,Table -ResourceType Container,Object -Permission wlacu -Context $context -StartTime $startdate -ExpiryTime $enddate -Protocol HttpsOnly
