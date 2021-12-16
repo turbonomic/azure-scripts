@@ -48,7 +48,6 @@ foreach($ent in $statsJson){
         $statsuri = "$apiBaseUri/entities/" + $($ent.uuid).ToString() + "/aspects"
         $response = Invoke-RestMethod -WebSession $Sess -uri $statsuri -ContentType $contentType -SkipCertificateCheck
         $os = $response.virtualMachineAspect.os
-        if 
         $heap = ($response.virtualMachineAspect | Where-Object {$_.ahublicense -eq "true"})
         $entnum = $entnum + 1
         if($heap -eq $null){
