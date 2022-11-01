@@ -1,9 +1,7 @@
 <#
 .VERSION
 1.2 - Add Turbonomic SPN
-Updated Date: Aug. 17, 2021
-Updated By: Jason Shaw 
-Email: Jason.Shaw@turbonomic.com
+Updated Date: JS - Aug. 17, 2021
 
 This script will add the Turbonomic SPN named 'svc-turbonomic' to the Azure subs specified, 
 in the subs.txt file that you have Owner access to.
